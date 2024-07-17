@@ -1,21 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './Css/Dash.css';
 import userImg from './Img/user-img.jpg';
 import CopyIcon from './Img/copyicon.svg';
 import PhotoEditIcon from './Img/edit_icon.svg';
 import AngleDownIcon from './Img/angle-down.svg';
+import SERVER_HOSTNAME from '../../config';
 
 export default function Profile() {
-    const [firstName, setFirstName] = useState("Prince");
-    const [lastName, setLastName] = useState("Godson");
-    const [email, setEmail] = useState("princegodson24@gmail.com");
-    const [phone, setPhone] = useState("09037494084");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [city, setCity] = useState("");
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [imgSrc, setImgSrc] = useState(userImg);
     const [file, setFile] = useState(null); // Store the selected file
     const [copyMessage, setCopyMessage] = useState('Copy verification Url');
+    const [isLoading, setIsLoading] = useState(false); // Loading state
+    const [flashMessage, setFlashMessage] = useState({ text: "", type: "" }); // Flash message state
+
+    // Fetch user data when the component mounts
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await fetch(`${SERVER_HOSTNAME}/user/create/1/`); // Adjust the endpoint as needed
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const userData = await response.json();
+                setFirstName(userData.firstName);
+                setLastName(userData.lastName);
+                setEmail(userData.email);
+                setPhone(userData.phone);
+                setCity(userData.city);
+                setImgSrc(`${SERVER_HOSTNAME}/${userData.image}`); // Set the full image URL
+                // Set other fields as needed
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
@@ -32,6 +59,8 @@ export default function Profile() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setIsLoading(true); // Start loading
+
         const updatedData = new FormData();
         updatedData.append('firstName', firstName);
         updatedData.append('lastName', lastName);
@@ -46,7 +75,7 @@ export default function Profile() {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:8080/user/create/1/', {
+            const response = await fetch(`${SERVER_HOSTNAME}/user/create/1/`, {
                 method: 'PATCH',
                 body: updatedData,
             });
@@ -56,11 +85,18 @@ export default function Profile() {
             }
 
             const result = await response.json();
-            console.log('Profile updated successfully:', result);
-            // Optionally handle success feedback
+            // console.log('Profile updated successfully:', result);
+            
+            // Set success flash message
+            setFlashMessage({ text: 'Profile updated successfully', type: 'success' });
+
         } catch (error) {
             console.error('Error updating profile:', error);
-            // Optionally handle error feedback
+            // Set error flash message
+            setFlashMessage({ text: 'Error updating profile. Please try again.', type: 'error' });
+
+        } finally {
+            setIsLoading(false); // Stop loading
         }
     };
 
@@ -90,8 +126,25 @@ export default function Profile() {
         setIsCertificateSectionVisible(true);
     };
 
+    // Function to clear flash message after a timeout
+    useEffect(() => {
+        if (flashMessage.text !== '') {
+            const timeout = setTimeout(() => {
+                setFlashMessage({ text: '', type: '' });
+            }, 5000); // Adjust timeout as needed (5 seconds here)
+            return () => clearTimeout(timeout);
+        }
+    }, [flashMessage]);
+
     return (
         <div className="profile-Sec">
+            {/* Flash message */}
+            {flashMessage.text && (
+                <div className={`flash-message ${flashMessage.type}`}>
+                    {flashMessage.text}
+                </div>
+            )}
+
             <div className="ToP_Upload_env">
                 <h3
                     className={`Upload_Box_Toggler ${isUploadBoxTogglerActive ? 'Active_Upload_Box_Toggler' : ''}`}
@@ -112,7 +165,7 @@ export default function Profile() {
                             <div className="top-dash-1-main">
                                 <input type="file" id="file-upload" onChange={handleFileChange} style={{ display: 'none' }} />
                                 <label htmlFor="file-upload" className="user-img">
-                                    <img src={imgSrc} alt="User" id="img-display" />
+                                    <img src={imgSrc} alt="User111222" id="img-display" />
                                     <span><img src={PhotoEditIcon}></img></span>
                                 </label>
                                 <div className="user-details">
@@ -180,7 +233,7 @@ export default function Profile() {
                                             onChange={(e) => setCity(e.target.value)}
                                         />
                                     </div>
-                                    <div className="form-input">
+                                    {/* <div className="form-input">
                                         <h3>Password reset</h3>
                                     </div>
                                     <div className="form-input">
@@ -191,8 +244,8 @@ export default function Profile() {
                                             value={oldPassword}
                                             onChange={(e) => setOldPassword(e.target.value)}
                                         />
-                                    </div>
-                                    <div className="form-input">
+                                    </div> */}
+                                    {/* <div className="form-input">
                                         <p>New Password</p>
                                         <input
                                             type="password"
@@ -200,9 +253,11 @@ export default function Profile() {
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                         />
-                                    </div>
+                                    </div> */}
                                     <div className="form-input">
-                                        <button type="submit" className="profile_submit_btn">Save Profile</button>
+                                        <button type="submit" className="profile_submit_btn">
+                                            {isLoading ? 'Updating...' : 'Save Profile'}
+                                        </button>
                                     </div>
                                 </form>
                             </div>
