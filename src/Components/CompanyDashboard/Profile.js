@@ -5,36 +5,37 @@ import CopyIcon from './Img/copyicon.svg';
 import PhotoEditIcon from './Img/edit_icon.svg';
 import AngleDownIcon from './Img/angle-down.svg';
 import SERVER_HOSTNAME from '../../config';
+import axios from 'axios';
 
-export default function Profile() {
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
+const Profile = () => {
+    const [firstName, setFirstName] = useState("Prince");
+    const [lastName, setLastName] = useState("Godson");
+    const [email, setEmail] = useState("princegodson24@gmail.com");
+    const [phone, setPhone] = useState("09037494084");
     const [city, setCity] = useState("");
-    const [oldPassword, setOldPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
+    const [yearIncorporated, setYearIncorporated] = useState("");
+    const [registrationNumber, setRegistrationNumber] = useState("");
+    const [nationality, setNationality] = useState("");
+    const [staffNumber, setStaffNumber] = useState("");
+    const [address, setAddress] = useState("");
+    const [country, setCountry] = useState("");
+    const [state, setState] = useState("");
     const [imgSrc, setImgSrc] = useState(userImg);
-    const [file, setFile] = useState(null); // Store the selected file
-    const [copyMessage, setCopyMessage] = useState('Copy verification Url');
-    const [isLoading, setIsLoading] = useState(false); // Loading state
-    const [flashMessage, setFlashMessage] = useState({ text: "", type: "" }); // Flash message state
+    const [copyMessage, setCopyMessage] = useState('Copy portal Url');
+    const [isUploadBoxTogglerActive, setIsUploadBoxTogglerActive] = useState(false);
+    const [isUploadEnvHidden, setIsUploadEnvHidden] = useState(false);
 
-    // Fetch user data when the component mounts
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetch(`${SERVER_HOSTNAME}/user/create/1/`); // Adjust the endpoint as needed
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const userData = await response.json();
-                setFirstName(userData.firstName);
-                setLastName(userData.lastName);
+                const response = await axios.get(`${SERVER_HOSTNAME}/user/create/1/`);
+                const userData = response.data;
+                setFirstName(userData.first_name);
+                setLastName(userData.last_name);
                 setEmail(userData.email);
                 setPhone(userData.phone);
                 setCity(userData.city);
-                setImgSrc(`${SERVER_HOSTNAME}/${userData.image}`); // Set the full image URL
+                setImgSrc(`${SERVER_HOSTNAME}/${userData.image}`); // Adjust as per your endpoint
                 // Set other fields as needed
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -45,59 +46,33 @@ export default function Profile() {
     }, []);
 
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile) {
+        const file = e.target.files[0];
+        if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 setImgSrc(e.target.result);
             };
-            reader.readAsDataURL(selectedFile);
-            setFile(selectedFile); // Save the file to state
+            reader.readAsDataURL(file);
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-
-        setIsLoading(true); // Start loading
-
-        const updatedData = new FormData();
-        updatedData.append('firstName', firstName);
-        updatedData.append('lastName', lastName);
-        updatedData.append('email', email);
-        updatedData.append('phone', phone);
-        updatedData.append('city', city);
-        updatedData.append('oldPassword', oldPassword);
-        updatedData.append('newPassword', newPassword);
-        
-        if (file) {
-            updatedData.append('image', file); // Append the file
-        }
-
-        try {
-            const response = await fetch(`${SERVER_HOSTNAME}/user/create/1/`, {
-                method: 'PATCH',
-                body: updatedData,
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const result = await response.json();
-            // console.log('Profile updated successfully:', result);
-            
-            // Set success flash message
-            setFlashMessage({ text: 'Profile updated successfully', type: 'success' });
-
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            // Set error flash message
-            setFlashMessage({ text: 'Error updating profile. Please try again.', type: 'error' });
-
-        } finally {
-            setIsLoading(false); // Stop loading
-        }
+        // Handle form submission logic
+        console.log({
+            firstName,
+            lastName,
+            email,
+            phone,
+            city,
+            yearIncorporated,
+            registrationNumber,
+            nationality,
+            staffNumber,
+            address,
+            country,
+            state
+        });
     };
 
     const handleCopy = () => {
@@ -109,42 +84,13 @@ export default function Profile() {
         setTimeout(() => setCopyMessage('Copy portal Url'), 2000);
     };
 
-    const [isUploadBoxTogglerActive, setIsUploadBoxTogglerActive] = useState(false);
-    const [isUploadEnvHidden, setIsUploadEnvHidden] = useState(false);
-    const [isCertificateSectionVisible, setIsCertificateSectionVisible] = useState(false);
-
     const toggleUploadEnvVisibility = () => {
         setIsUploadEnvHidden(!isUploadEnvHidden);
         setIsUploadBoxTogglerActive(!isUploadBoxTogglerActive);
     };
 
-    const handleCloseButtonClick = () => {
-        setIsCertificateSectionVisible(false);
-    };
-
-    const handlePreviewButtonClick = () => {
-        setIsCertificateSectionVisible(true);
-    };
-
-    // Function to clear flash message after a timeout
-    useEffect(() => {
-        if (flashMessage.text !== '') {
-            const timeout = setTimeout(() => {
-                setFlashMessage({ text: '', type: '' });
-            }, 5000); // Adjust timeout as needed (5 seconds here)
-            return () => clearTimeout(timeout);
-        }
-    }, [flashMessage]);
-
     return (
         <div className="profile-Sec">
-            {/* Flash message */}
-            {flashMessage.text && (
-                <div className={`flash-message ${flashMessage.type}`}>
-                    {flashMessage.text}
-                </div>
-            )}
-
             <div className="ToP_Upload_env">
                 <h3
                     className={`Upload_Box_Toggler ${isUploadBoxTogglerActive ? 'Active_Upload_Box_Toggler' : ''}`}
@@ -165,8 +111,8 @@ export default function Profile() {
                             <div className="top-dash-1-main">
                                 <input type="file" id="file-upload" onChange={handleFileChange} style={{ display: 'none' }} />
                                 <label htmlFor="file-upload" className="user-img">
-                                    <img src={imgSrc} alt="User111222" id="img-display" />
-                                    <span><img src={PhotoEditIcon}></img></span>
+                                    <img src={imgSrc} alt="User" id="img-display" />
+                                    <span><img src={PhotoEditIcon} alt="Edit Icon" /></span>
                                 </label>
                                 <div className="user-details">
                                     <h4>Company ABC Portal Profile</h4>
@@ -192,7 +138,7 @@ export default function Profile() {
                                 <form className="site-form" onSubmit={handleSubmit}>
                                     <div className="d-grid">
                                         <div className="form-input">
-                                            <p>First Name</p>
+                                            <p>Company Name</p>
                                             <input
                                                 type="text"
                                                 value={firstName}
@@ -200,7 +146,7 @@ export default function Profile() {
                                             />
                                         </div>
                                         <div className="form-input">
-                                            <p>Last Name</p>
+                                            <p>Business type</p>
                                             <input
                                                 type="text"
                                                 value={lastName}
@@ -209,7 +155,7 @@ export default function Profile() {
                                         </div>
                                     </div>
                                     <div className="form-input">
-                                        <p>Email Address</p>
+                                        <p>Contact Person's First name</p>
                                         <input
                                             type="text"
                                             value={email}
@@ -217,7 +163,7 @@ export default function Profile() {
                                         />
                                     </div>
                                     <div className="form-input">
-                                        <p>Phone Number</p>
+                                        <p>Contact Person's Last Name</p>
                                         <input
                                             type="text"
                                             value={phone}
@@ -225,39 +171,81 @@ export default function Profile() {
                                         />
                                     </div>
                                     <div className="form-input">
-                                        <p>City</p>
+                                        <p>Contact Person's Telephone</p>
                                         <input
                                             type="text"
-                                            placeholder="Enter your city"
+                                            placeholder="Enter Company Address"
                                             value={city}
                                             onChange={(e) => setCity(e.target.value)}
                                         />
                                     </div>
-                                    {/* <div className="form-input">
-                                        <h3>Password reset</h3>
+                                    <div className="form-input">
+                                        <p>Year Incorporated</p>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter Year Incorporated"
+                                            value={yearIncorporated}
+                                            onChange={(e) => setYearIncorporated(e.target.value)}
+                                        />
                                     </div>
                                     <div className="form-input">
-                                        <p>Old Password</p>
+                                        <p>Registration Number</p>
                                         <input
-                                            type="password"
-                                            placeholder="Enter old password"
-                                            value={oldPassword}
-                                            onChange={(e) => setOldPassword(e.target.value)}
+                                            type="text"
+                                            placeholder="Enter Registration Number"
+                                            value={registrationNumber}
+                                            onChange={(e) => setRegistrationNumber(e.target.value)}
                                         />
-                                    </div> */}
-                                    {/* <div className="form-input">
-                                        <p>New Password</p>
-                                        <input
-                                            type="password"
-                                            placeholder="Enter new password"
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                        />
-                                    </div> */}
+                                    </div>
                                     <div className="form-input">
-                                        <button type="submit" className="profile_submit_btn">
-                                            {isLoading ? 'Updating...' : 'Save Profile'}
-                                        </button>
+                                        <p>Nationality</p>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter Nationality"
+                                            value={nationality}
+                                            onChange={(e) => setNationality(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-input">
+                                        <p>No. of Staff</p>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter Number of Staff"
+                                            value={staffNumber}
+                                            onChange={(e) => setStaffNumber(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-input">
+                                        <p>City Address</p>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter City Address"
+                                            value={address}
+                                            onChange={(e) => setAddress(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-input">
+                                        <p>Select Country</p>
+                                        <select value={country} onChange={(e) => setCountry(e.target.value)}>
+                                            <option value="">Select Country</option>
+                                            <option value="Nigeria">Nigeria</option>
+                                            <option value="USA">USA</option>
+                                            <option value="UK">UK</option>
+                                            {/* Add more countries as needed */}
+                                        </select>
+                                    </div>
+                                    <div className="form-input">
+                                        <p>Select State</p>
+                                        <select value={state} onChange={(e) => setState(e.target.value)}>
+                                            <option value="">Select State</option>
+                                            <option value="Lagos">Lagos</option>
+                                            <option value="California">California</option>
+                                            <option value="London">London</option>
+                                            {/* Add more states as needed */}
+                                        </select>
+                                    </div>
+                                    <div className="form-input">
+                                        <button type="submit" className="profile_submit_btn">Save Profile</button>
                                     </div>
                                 </form>
                             </div>
@@ -267,4 +255,6 @@ export default function Profile() {
             </div>
         </div>
     );
-}
+};
+
+export default Profile;
